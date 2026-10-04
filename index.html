@@ -1,0 +1,448 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elektrodinamika — Model Interaktif</title>
+  <meta name="description" content="Kumpulan materi Elektrodinamika interaktif berbasis Python dan Jupyter Notebook untuk Magister Fisika UNPAD." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #060b14;
+      --surface:   #0d1526;
+      --card:      #111c35;
+      --border:    rgba(99,179,237,0.12);
+      --glow-1:    #3b82f6;
+      --glow-2:    #8b5cf6;
+      --accent:    #60a5fa;
+      --accent-2:  #a78bfa;
+      --text:      #e2e8f0;
+      --muted:     #94a3b8;
+      --radius:    16px;
+      --transition: 0.35s cubic-bezier(0.4,0,0.2,1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% -10%, rgba(59,130,246,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 110%, rgba(139,92,246,0.15) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(99,179,237,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,179,237,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    header {
+      padding: 80px 0 64px;
+      text-align: center;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid rgba(96,165,250,0.25);
+      background: rgba(96,165,250,0.08);
+      padding: 6px 16px;
+      border-radius: 999px;
+      margin-bottom: 28px;
+    }
+    .badge .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.7); }
+    }
+    h1 {
+      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      font-weight: 700;
+      line-height: 1.15;
+      background: linear-gradient(135deg, #e2e8f0 30%, var(--accent) 65%, var(--accent-2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 20px;
+    }
+    .subtitle {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 14px;
+      line-height: 1.7;
+    }
+    .meta {
+      font-size: 0.8rem;
+      color: rgba(148,163,184,0.6);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .divider {
+      width: 64px; height: 2px;
+      background: linear-gradient(90deg, var(--glow-1), var(--glow-2));
+      border-radius: 999px;
+      margin: 40px auto;
+      opacity: 0.6;
+    }
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 64px;
+    }
+    .card {
+      position: relative;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow: hidden;
+      transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity var(--transition);
+      border-radius: var(--radius);
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(96,165,250,0.35);
+      box-shadow: 0 12px 40px rgba(59,130,246,0.12), 0 2px 8px rgba(0,0,0,0.4);
+    }
+    .card:hover::before { opacity: 1; }
+    .card-blue::before  { background: radial-gradient(ellipse at top left, rgba(59,130,246,0.08), transparent 70%); }
+    .card-violet::before { background: radial-gradient(ellipse at top left, rgba(139,92,246,0.08), transparent 70%); }
+    .card-cyan::before  { background: radial-gradient(ellipse at top left, rgba(6,182,212,0.08), transparent 70%); }
+    .card-amber::before { background: radial-gradient(ellipse at top left, rgba(245,158,11,0.08), transparent 70%); }
+    .card-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+    .icon-blue   { background: rgba(59,130,246,0.15); }
+    .icon-violet { background: rgba(139,92,246,0.15); }
+    .icon-cyan   { background: rgba(6,182,212,0.15);  }
+    .icon-amber  { background: rgba(245,158,11,0.15); }
+    .card-body { flex: 1; }
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .card-desc {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .tag {
+      font-size: 0.7rem;
+      font-weight: 500;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid;
+    }
+    .tag-blue   { color: #60a5fa; border-color: rgba(96,165,250,0.3);  background: rgba(96,165,250,0.08);  }
+    .tag-violet { color: #a78bfa; border-color: rgba(167,139,250,0.3); background: rgba(167,139,250,0.08); }
+    .tag-cyan   { color: #22d3ee; border-color: rgba(34,211,238,0.3);  background: rgba(34,211,238,0.08);  }
+    .tag-amber  { color: #fbbf24; border-color: rgba(251,191,36,0.3);  background: rgba(251,191,36,0.08);  }
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .card-cta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+      color: var(--accent);
+      transition: gap var(--transition);
+    }
+    .card:hover .card-cta { gap: 10px; }
+    .card-cta svg { transition: transform var(--transition); }
+    .card:hover .card-cta svg { transform: translateX(3px); }
+    .card-soon {
+      opacity: 0.55;
+      cursor: default;
+      pointer-events: none;
+    }
+    .soon-badge {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(148,163,184,0.1);
+      border: 1px solid rgba(148,163,184,0.2);
+      color: var(--muted);
+    }
+    .info-strip {
+      background: rgba(59,130,246,0.06);
+      border: 1px solid rgba(59,130,246,0.15);
+      border-radius: var(--radius);
+      padding: 20px 28px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 64px;
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .info-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 0;
+      text-align: center;
+      font-size: 0.8rem;
+      color: rgba(148,163,184,0.5);
+    }
+    footer a { color: var(--accent); text-decoration: none; opacity: 0.8; }
+    footer a:hover { opacity: 1; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .anim   { animation: fadeUp 0.6s ease both; }
+    .anim-1 { animation-delay: 0.05s; }
+    .anim-2 { animation-delay: 0.15s; }
+    .anim-3 { animation-delay: 0.25s; }
+    .anim-4 { animation-delay: 0.35s; }
+    .anim-5 { animation-delay: 0.45s; }
+    .anim-6 { animation-delay: 0.55s; }
+    @media (max-width: 600px) {
+      header { padding: 56px 0 40px; }
+      .card-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <div class="badge anim anim-1">
+        <span class="dot"></span>
+        Magister Fisika UNPAD
+      </div>
+      <h1 class="anim anim-2">Elektrodinamika<br/>Model Interaktif</h1>
+      <p class="subtitle anim anim-3">
+        Kumpulan simulasi dan visualisasi interaktif berbasis Python untuk mendukung pemahaman konsep-konsep inti Elektrodinamika.
+      </p>
+      <p class="meta anim anim-3">Universitas Padjadjaran &middot; Program Studi Magister Fisika</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <div class="info-strip anim anim-3">
+        <span class="info-icon">💡</span>
+        <span>
+          Setiap modul diekspor dari <strong>Jupyter Notebook</strong> (.ipynb) menggunakan Python.
+          Visualisasi interaktif dibuat dengan <strong>Plotly</strong> dan <strong>Matplotlib</strong>.
+          Buka halaman modul langsung di browser &mdash; tidak diperlukan instalasi tambahan.
+        </span>
+      </div>
+
+      <p class="section-title anim anim-4">Modul tersedia</p>
+
+      <div class="card-grid">
+
+        <a href="elektrostatik.html" class="card card-blue anim anim-4" id="card-elektrostatik">
+          <div class="card-icon icon-blue">&#9889;</div>
+          <div class="card-body">
+            <p class="card-title">Elektrostatik</p>
+            <p class="card-desc">
+              Medan listrik, potensial, dan distribusi muatan. Visualisasi garis medan dan equipotensial untuk konfigurasi muatan titik dan kontinu.
+            </p>
+          </div>
+          <div class="card-tags">
+            <span class="tag tag-blue">Medan Listrik</span>
+            <span class="tag tag-blue">Potensial</span>
+            <span class="tag tag-blue">Hukum Coulomb</span>
+          </div>
+          <div class="card-footer">
+            <span>elektrostatik.html</span>
+            <span class="card-cta">
+              Buka
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </span>
+          </div>
+        </a>
+
+        <a href="magnetostatik.html" class="card card-violet anim anim-5" id="card-magnetostatik">
+          <div class="card-icon icon-violet">&#129692;</div>
+          <div class="card-body">
+            <p class="card-title">Magnetostatik</p>
+            <p class="card-desc">
+              Medan magnet akibat arus listrik. Hukum Biot-Savart, Hukum Ampere, dan visualisasi medan untuk berbagai geometri konduktor.
+            </p>
+          </div>
+          <div class="card-tags">
+            <span class="tag tag-violet">Medan Magnet</span>
+            <span class="tag tag-violet">Biot-Savart</span>
+            <span class="tag tag-violet">Hukum Ampere</span>
+          </div>
+          <div class="card-footer">
+            <span>magnetostatik.html</span>
+            <span class="card-cta">
+              Buka
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </span>
+          </div>
+        </a>
+
+        <div class="card card-cyan card-soon anim anim-6" id="card-superposisi">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div class="card-icon icon-cyan">&#127754;</div>
+            <span class="soon-badge">Segera hadir</span>
+          </div>
+          <div class="card-body">
+            <p class="card-title">Superposisi Medan</p>
+            <p class="card-desc">
+              Prinsip superposisi untuk medan listrik dan medan magnet dari banyak sumber. Visualisasi interaktif penjumlahan vektor medan.
+            </p>
+          </div>
+          <div class="card-tags">
+            <span class="tag tag-cyan">Superposisi</span>
+            <span class="tag tag-cyan">Vektor Medan</span>
+          </div>
+          <div class="card-footer">
+            <span>superposisi.html</span>
+          </div>
+        </div>
+
+      </div>
+
+      <p class="section-title anim anim-6">Rencana modul berikutnya</p>
+
+      <div class="card-grid">
+
+        <div class="card card-amber card-soon" id="card-induksi">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div class="card-icon icon-amber">&#128260;</div>
+            <span class="soon-badge">Direncanakan</span>
+          </div>
+          <div class="card-body">
+            <p class="card-title">Induksi Elektromagnetik</p>
+            <p class="card-desc">
+              Hukum Faraday, GGL induksi, dan fluksi magnetik. Simulasi induktor dan transformator sederhana.
+            </p>
+          </div>
+          <div class="card-tags">
+            <span class="tag tag-amber">Faraday</span>
+            <span class="tag tag-amber">Fluksi</span>
+          </div>
+        </div>
+
+        <div class="card card-blue card-soon" id="card-gelombang">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div class="card-icon icon-blue">&#128225;</div>
+            <span class="soon-badge">Direncanakan</span>
+          </div>
+          <div class="card-body">
+            <p class="card-title">Gelombang Elektromagnetik</p>
+            <p class="card-desc">
+              Persamaan Maxwell, perambatan gelombang EM, polarisasi, dan refleksi-transmisi pada antarmuka medium.
+            </p>
+          </div>
+          <div class="card-tags">
+            <span class="tag tag-blue">Maxwell</span>
+            <span class="tag tag-blue">Polarisasi</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>
+        Dibuat dengan menggunakan Python &amp; Jupyter Notebook &middot;
+        <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+      </p>
+      <p style="margin-top:6px;">Magister Fisika &middot; Universitas Padjadjaran &middot; 2024</p>
+    </div>
+  </footer>
+
+</body>
+</html>
