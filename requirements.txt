@@ -1,0 +1,6 @@
+numpy
+matplotlib
+sympy
+
+
+## python -m nbconvert --to html --no-input "magnetostatik.ipynb"
