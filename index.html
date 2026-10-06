@@ -284,6 +284,14 @@
       gap: 6px;
     }
 
+    .notebook-topic-list {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.7;
+    }
+
     .tag {
       font-size: 0.7rem;
       font-weight: 600;
@@ -492,85 +500,8 @@
 
       <p class="section-title anim anim-4">Modul tersedia</p>
 
-      <div class="card-grid">
-
-        <a href="elektrostatik.html" class="card card-blue anim anim-4" id="card-elektrostatik">
-          <div class="card-icon icon-blue">&#9889;</div>
-          <div class="card-body">
-            <p class="card-title">Elektrostatik</p>
-            <p class="card-desc">
-              Medan listrik, potensial, dan distribusi muatan. Visualisasi garis medan dan equipotensial untuk
-              konfigurasi muatan titik dan kontinu.
-            </p>
-          </div>
-          <div class="card-tags">
-            <span class="tag tag-blue">Medan Listrik</span>
-            <span class="tag tag-blue">Potensial</span>
-            <span class="tag tag-blue">Hukum Coulomb</span>
-          </div>
-          <div class="card-footer">
-            <span>elektrostatik.html</span>
-            <span class="card-cta">
-              Buka
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </span>
-          </div>
-        </a>
-
-        <a href="magnetostatik.html" class="card card-violet anim anim-5" id="card-magnetostatik">
-          <div class="card-icon icon-violet">&#129692;</div>
-          <div class="card-body">
-            <p class="card-title">Magnetostatik</p>
-            <p class="card-desc">
-              Medan magnet akibat arus listrik. Hukum Biot-Savart, Hukum Ampere, dan visualisasi medan untuk berbagai
-              geometri konduktor.
-            </p>
-          </div>
-          <div class="card-tags">
-            <span class="tag tag-violet">Medan Magnet</span>
-            <span class="tag tag-violet">Biot-Savart</span>
-            <span class="tag tag-violet">Hukum Ampere</span>
-          </div>
-          <div class="card-footer">
-            <span>magnetostatik.html</span>
-            <span class="card-cta">
-              Buka
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </span>
-          </div>
-        </a>
-
-        <a href="superposisi.html" class="card card-cyan anim anim-6" id="card-superposisi">
-          <div class="card-icon icon-cyan">&#127754;</div>
-          <div class="card-body">
-            <p class="card-title">Superposisi Medan</p>
-            <p class="card-desc">
-              Prinsip superposisi untuk medan listrik dan medan magnet dari banyak sumber. Visualisasi interaktif
-              penjumlahan vektor medan.
-            </p>
-          </div>
-          <div class="card-tags">
-            <span class="tag tag-cyan">Superposisi</span>
-            <span class="tag tag-cyan">Vektor Medan</span>
-          </div>
-          <div class="card-footer">
-            <span>superposisi.html</span>
-            <span class="card-cta">
-              Buka
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </span>
-          </div>
-        </a>
-
+      <div class="card-grid" id="available-modules" aria-live="polite">
+        <p class="card-desc">Memuat modul...</p>
       </div>
 
       <p class="section-title anim anim-6">Rencana modul berikutnya</p>
@@ -630,6 +561,114 @@
     </div>
   </footer>
 
+  <script>
+    const notebooks = [
+      "elektrostatik.ipynb",
+      "magnetostatik.ipynb",
+      "medan_magnet_dalam_bahan.ipynb"
+    ];
+
+    function getNotebookHeadings(notebook) {
+      const cells = Array.isArray(notebook.cells) ? notebook.cells : [];
+      const markdown = cells
+        .filter((cell) => cell.cell_type === "markdown")
+        .map((cell) => Array.isArray(cell.source) ? cell.source.join("") : cell.source || "")
+        .join("\n");
+      const headings = markdown.split(/\r?\n/).filter((line) => /^#{1,2}\s+/.test(line.trim()));
+      const title = headings.find((line) => /^#\s+/.test(line.trim()));
+      const topics = headings
+        .filter((line) => /^##\s+/.test(line.trim()))
+        .map((line) => line.trim().replace(/^##\s+/, "").replace(/\s+#+\s*$/, ""));
+
+      return { title: title ? title.trim().replace(/^#\s+/, "") : "", topics };
+    }
+
+    function renderNotebookCard(container, filename, data, error) {
+      const card = document.createElement("a");
+      card.className = "card card-cyan notebook-card";
+      const htmlFilename = filename.replace(/\.ipynb$/, ".html");
+      card.href = htmlFilename;
+
+      const body = document.createElement("div");
+      body.className = "card-body";
+
+      const title = document.createElement("p");
+      title.className = "card-title";
+      title.textContent = data ? (data.title || filename) : filename;
+      body.appendChild(title);
+
+      if (error) {
+        const message = document.createElement("p");
+        message.className = "card-desc";
+        message.textContent = `Informasi modul tidak dapat dimuat: ${error}`;
+        body.appendChild(message);
+      } else if (data.topics.length) {
+        const topicList = document.createElement("ul");
+        topicList.className = "notebook-topic-list";
+        data.topics.forEach((topic) => {
+          const item = document.createElement("li");
+          item.textContent = topic;
+          topicList.appendChild(item);
+        });
+        body.appendChild(topicList);
+      } else {
+        const message = document.createElement("p");
+        message.className = "card-desc";
+        message.textContent = "Notebook ini belum memiliki heading topik.";
+        body.appendChild(message);
+      }
+
+      card.appendChild(body);
+      const footer = document.createElement("div");
+      footer.className = "card-footer";
+
+      const filenameLabel = document.createElement("span");
+      filenameLabel.textContent = htmlFilename;
+      footer.appendChild(filenameLabel);
+
+      const callToAction = document.createElement("span");
+      callToAction.className = "card-cta";
+      callToAction.append("Buka materi");
+      const arrow = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      arrow.setAttribute("width", "14");
+      arrow.setAttribute("height", "14");
+      arrow.setAttribute("viewBox", "0 0 24 24");
+      arrow.setAttribute("fill", "none");
+      arrow.setAttribute("stroke", "currentColor");
+      arrow.setAttribute("stroke-width", "2.5");
+      arrow.setAttribute("stroke-linecap", "round");
+      arrow.setAttribute("stroke-linejoin", "round");
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", "M5 12h14M12 5l7 7-7 7");
+      arrow.appendChild(path);
+      callToAction.appendChild(arrow);
+      footer.appendChild(callToAction);
+      card.appendChild(footer);
+      container.appendChild(card);
+    }
+
+    async function loadAvailableModules() {
+      const container = document.getElementById("available-modules");
+      const results = await Promise.all(notebooks.map(async (filename) => {
+        try {
+          const response = await fetch(filename);
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          return { filename, data: getNotebookHeadings(await response.json()) };
+        } catch (error) {
+          return { filename, error: error.message };
+        }
+      }));
+
+      container.replaceChildren();
+      results.forEach(({ filename, data, error }) => {
+        renderNotebookCard(container, filename, data, error);
+      });
+    }
+
+    loadAvailableModules();
+  </script>
 </body>
 
 </html>
