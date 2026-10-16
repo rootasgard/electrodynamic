@@ -344,15 +344,16 @@
       transition: gap var(--transition);
     }
 
+    .card-cta::after {
+      content: '→';
+      transition: transform var(--transition);
+    }
+
     .card:hover .card-cta {
       gap: 10px;
     }
 
-    .card-cta svg {
-      transition: transform var(--transition);
-    }
-
-    .card:hover .card-cta svg {
+    .card:hover .card-cta::after {
       transform: translateX(3px);
     }
 
@@ -501,7 +502,79 @@
       <p class="section-title anim anim-4">Modul tersedia</p>
 
       <div class="card-grid" id="available-modules" aria-live="polite">
-        <p class="card-desc">Memuat modul...</p>
+        <a class="card card-amber notebook-card" href="proyeksi_sistem_koordinat.html">
+          <div class="card-body">
+            <p class="card-title">Analisis Vektor</p>
+            <ul class="notebook-topic-list">
+              <li>Aljabar vektor</li>
+              <li>Kalkulus diferensial vektor</li>
+              <li>Kalkulus integral vektor</li>
+              <li>Koordinat kurvilinear</li>
+              <li>Operator dalam koordinat kurvilinear</li>
+              <li>Delta Dirac dan singularitas koordinat</li>
+              <li>Rangkuman Komprehensif dan Problems</li>
+            </ul>
+          </div>
+          <div class="card-footer">
+            <span class="card-cta">Buka materi</span>
+          </div>
+        </a>
+
+        <a class="card card-blue notebook-card" href="elektrostatik.html">
+          <div class="card-body">
+            <p class="card-title">Elektrostatika</p>
+            <ul class="notebook-topic-list">
+              <li>Kerangka Teori Elektrostatika</li>
+              <li>Gaya Listrik dan Hukum Coulomb</li>
+              <li>Medan Listrik dan Hukum Gauss</li>
+              <li>Potensial Listrik dan Energi Potensial</li>
+              <li>Syarat Batas &amp; Masalah Nilai Batas</li>
+              <li>Bahan Dielektrik, Polarisasi, dan Kapasitansi</li>
+              <li>Rangkuman Komprehensif dan Problems</li>
+            </ul>
+          </div>
+          <div class="card-footer">
+            <span class="card-cta">Buka materi</span>
+          </div>
+        </a>
+
+        <a class="card card-violet notebook-card" href="magnetostatik.html">
+          <div class="card-body">
+            <p class="card-title">Magnetostatika</p>
+            <ul class="notebook-topic-list">
+              <li>Notasi, Konvensi, dan Tujuan Belajar</li>
+              <li>Gaya Lorentz</li>
+              <li>Arus dan gaya pada pembawa arus</li>
+              <li>Hukum Biot–Savart</li>
+              <li>Divergensi, Curl, dan Hukum Ampère</li>
+              <li>Vektor Potensial Magnet</li>
+              <li>Rangkuman Komprehensif dan Problems</li>
+            </ul>
+          </div>
+          <div class="card-footer">
+            <span class="card-cta">Buka materi</span>
+          </div>
+        </a>
+
+        <a class="card card-cyan notebook-card" href="medan_magnet_dalam_bahan.html">
+          <div class="card-body">
+            <p class="card-title">Medan Magnet pada Bahan-bahan</p>
+            <ul class="notebook-topic-list">
+              <li>Notasi</li>
+              <li>Dipol Magnetik (Torsi dan Gaya)</li>
+              <li>Magnetisasi dan Jenis Respons Bahan</li>
+              <li>Dari magnetisasi ke arus terikat</li>
+              <li>Medan bantu H dan arus bebas</li>
+              <li>Syarat batas pada antarmuka bahan</li>
+              <li>Bahan linear (suseptibilitas dan permeabilitas)</li>
+              <li>Feromagnet (domain dan histeresis)</li>
+              <li>Rangkuman Komprehensif dan Problems</li>
+            </ul>
+          </div>
+          <div class="card-footer">
+            <span class="card-cta">Buka materi</span>
+          </div>
+        </a>
       </div>
 
       <p class="section-title anim anim-6">Rencana modul berikutnya</p>
@@ -561,114 +634,6 @@
     </div>
   </footer>
 
-  <script>
-    const notebooks = [
-      "elektrostatik.ipynb",
-      "magnetostatik.ipynb",
-      "medan_magnet_dalam_bahan.ipynb"
-    ];
-
-    function getNotebookHeadings(notebook) {
-      const cells = Array.isArray(notebook.cells) ? notebook.cells : [];
-      const markdown = cells
-        .filter((cell) => cell.cell_type === "markdown")
-        .map((cell) => Array.isArray(cell.source) ? cell.source.join("") : cell.source || "")
-        .join("\n");
-      const headings = markdown.split(/\r?\n/).filter((line) => /^#{1,2}\s+/.test(line.trim()));
-      const title = headings.find((line) => /^#\s+/.test(line.trim()));
-      const topics = headings
-        .filter((line) => /^##\s+/.test(line.trim()))
-        .map((line) => line.trim().replace(/^##\s+/, "").replace(/\s+#+\s*$/, ""));
-
-      return { title: title ? title.trim().replace(/^#\s+/, "") : "", topics };
-    }
-
-    function renderNotebookCard(container, filename, data, error) {
-      const card = document.createElement("a");
-      card.className = "card card-cyan notebook-card";
-      const htmlFilename = filename.replace(/\.ipynb$/, ".html");
-      card.href = htmlFilename;
-
-      const body = document.createElement("div");
-      body.className = "card-body";
-
-      const title = document.createElement("p");
-      title.className = "card-title";
-      title.textContent = data ? (data.title || filename) : filename;
-      body.appendChild(title);
-
-      if (error) {
-        const message = document.createElement("p");
-        message.className = "card-desc";
-        message.textContent = `Informasi modul tidak dapat dimuat: ${error}`;
-        body.appendChild(message);
-      } else if (data.topics.length) {
-        const topicList = document.createElement("ul");
-        topicList.className = "notebook-topic-list";
-        data.topics.forEach((topic) => {
-          const item = document.createElement("li");
-          item.textContent = topic;
-          topicList.appendChild(item);
-        });
-        body.appendChild(topicList);
-      } else {
-        const message = document.createElement("p");
-        message.className = "card-desc";
-        message.textContent = "Notebook ini belum memiliki heading topik.";
-        body.appendChild(message);
-      }
-
-      card.appendChild(body);
-      const footer = document.createElement("div");
-      footer.className = "card-footer";
-
-      const filenameLabel = document.createElement("span");
-      filenameLabel.textContent = htmlFilename;
-      footer.appendChild(filenameLabel);
-
-      const callToAction = document.createElement("span");
-      callToAction.className = "card-cta";
-      callToAction.append("Buka materi");
-      const arrow = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      arrow.setAttribute("width", "14");
-      arrow.setAttribute("height", "14");
-      arrow.setAttribute("viewBox", "0 0 24 24");
-      arrow.setAttribute("fill", "none");
-      arrow.setAttribute("stroke", "currentColor");
-      arrow.setAttribute("stroke-width", "2.5");
-      arrow.setAttribute("stroke-linecap", "round");
-      arrow.setAttribute("stroke-linejoin", "round");
-      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      path.setAttribute("d", "M5 12h14M12 5l7 7-7 7");
-      arrow.appendChild(path);
-      callToAction.appendChild(arrow);
-      footer.appendChild(callToAction);
-      card.appendChild(footer);
-      container.appendChild(card);
-    }
-
-    async function loadAvailableModules() {
-      const container = document.getElementById("available-modules");
-      const results = await Promise.all(notebooks.map(async (filename) => {
-        try {
-          const response = await fetch(filename);
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
-          return { filename, data: getNotebookHeadings(await response.json()) };
-        } catch (error) {
-          return { filename, error: error.message };
-        }
-      }));
-
-      container.replaceChildren();
-      results.forEach(({ filename, data, error }) => {
-        renderNotebookCard(container, filename, data, error);
-      });
-    }
-
-    loadAvailableModules();
-  </script>
 </body>
 
 </html>
