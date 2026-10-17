@@ -5,7 +5,7 @@ description: "Pedoman dan template standar untuk membuat notebook Jupyter komput
 
 # Physics Interactive Notebook Skill
 
-Standar arsitektur dan gaya penulisan untuk menghasilkan notebook komputasi fisika interaktif tingkat pascasarjana/akademik premium, dimodelkan langsung dari arsitektur standar emas [dipol_magnet_dua_kawat.ipynb](file:///c:/Users/asgard/OneDrive/Laptop/MAGISTER%20FISIKA%20UNPAD/ELEKTRODINAMIKA/electrodynamic/course6.ipynb).
+Standar arsitektur dan gaya penulisan untuk menghasilkan notebook komputasi fisika interaktif tingkat pascasarjana/akademik premium, dimodelkan langsung dari arsitektur standar emas [course6.ipynb](file:///c:/Users/asgard/OneDrive/Laptop/MAGISTER%20FISIKA%20UNPAD/ELEKTRODINAMIKA/electrodynamic/course6.ipynb).
 
 ---
 
