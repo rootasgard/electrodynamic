@@ -357,3 +357,145 @@ Sebelum menyelesaikan notebook baru, pastikan seluruh kriteria ini terpenuhi:
 - [ ] **Toolbar Collapsible Berfungsi**: Tombol buka/tutup dapat menyembunyikan drawer sehingga kanvas 3D leluasa dieksplorasi.
 - [ ] **Ergonomi Sentuh Mobile**: Slider dan tombol dapat dioperasikan dengan mudah pada layar sentuh ponsel tanpa overflow horizontal.
 - [ ] **Validasi Ekspor HTML**: Perintah `python -m nbconvert --to html --no-input notebook.ipynb` berhasil menghasilkan file `.html` yang mandiri dan interaktif.
+
+---
+
+## 5. Pembaruan `index.html` Saat Notebook Baru Diterbitkan
+
+Setiap kali notebook baru (`courseN.ipynb`) dibuat atau diterbitkan, `index.html` **wajib diperbarui** agar daftar modul tetap akurat. Ikuti alur ini secara berurutan.
+
+> [!IMPORTANT]
+> Jangan pernah mengarang judul, topik, atau deskripsi kursus. Semua konten kartu harus diambil langsung dari notebook. Ini adalah aturan **antislop R-38 (Real Content or Honest Placeholder)**.
+
+---
+
+### 5.1 Langkah Wajib: Ekstrak Judul dan Topik dari Notebook
+
+Jalankan skrip Python berikut untuk membaca data asli dari semua notebook:
+
+```python
+import json, pathlib
+
+base = pathlib.Path(r"c:\Users\asgard\OneDrive\Laptop\MAGISTER FISIKA UNPAD\ELEKTRODINAMIKA\electrodynamic")
+
+for nb_path in sorted(base.glob("course*.ipynb")):
+    with open(nb_path, encoding="utf-8") as f:
+        nb = json.load(f)
+    for cell in nb["cells"]:
+        if cell["cell_type"] == "markdown":
+            src = "".join(cell["source"])
+            for line in src.splitlines():
+                if line.startswith("# "):
+                    print(f"{nb_path.stem}: {line.strip()}")
+                    break
+            else:
+                continue
+            break
+```
+
+Gunakan output skrip ini sebagai sumber kebenaran judul kartu. **Jangan tulis judul dari ingatan.**
+
+---
+
+### 5.2 Aturan Antislop yang Berlaku pada `index.html`
+
+Seluruh revisi `index.html` harus mematuhi aturan berikut (referensi ke antislop core):
+
+| Aturan | Penerapan pada `index.html` |
+|---|---|
+| **R-24 (Navigation)** | Setiap `<a href="...">` hanya boleh mengarah ke file `.html` yang benar-benar ada di direktori. |
+| **R-26 (Interactive Elements)** | Tidak ada link mati. Kursus yang `.html`-nya belum diekspor harus memakai `<div class="card card-soon">` bukan `<a>`. |
+| **R-38 (Real Content)** | Judul, topik, dan referensi bab Griffiths diambil persis dari notebook. Tidak boleh dikarang. |
+| **R-03 (Mobile Responsiveness)** | Grid wajib tiga state reflow: 1 kolom (<560px), 2 kolom (560–900px), 3 kolom (>900px). |
+| **R-17 (Data & Numbers)** | Tidak boleh ada angka statistik palsu (jumlah mahasiswa, rating, dsb.). |
+| **R-07 (Background)** | Tidak ada grid background CSS (`background-image: linear-gradient` berulang sebagai latar repeating). |
+| **R-05 (Layout)** | Tidak ada layout template AI generik. Struktur: header, banner konteks, grid kartu, footer. |
+
+---
+
+### 5.3 Pola Kartu untuk Notebook Baru (Tersedia)
+
+Salin template kartu berikut dan ganti placeholder `{{...}}` dengan data dari notebook:
+
+```html
+<!-- Course N — file courseN.html SUDAH ADA -->
+<a class="card rise dN" href="courseN.html"
+   aria-label="Buka modul N: {{JUDUL_LENGKAP_DARI_NOTEBOOK}}">
+  <div class="card-header">
+    <div class="card-num">0N</div>
+  </div>
+  <div class="card-body">
+    <p class="card-title">{{JUDUL_SINGKAT}}</p>
+    <ul class="topic-list">
+      <li>{{TOPIK_1_DARI_NOTEBOOK}}</li>
+      <li>{{TOPIK_2_DARI_NOTEBOOK}}</li>
+      <li>{{TOPIK_3_DARI_NOTEBOOK}}</li>
+      <li>{{TOPIK_4_DARI_NOTEBOOK}}</li>
+      <li>{{TOPIK_5_DARI_NOTEBOOK}}</li>
+    </ul>
+  </div>
+  <div class="card-footer">
+    <span class="ref-chip">Griffiths Ch. {{BAB}}</span>
+    <span class="card-cta">Buka modul</span>
+  </div>
+</a>
+```
+
+---
+
+### 5.4 Pola Kartu untuk Notebook yang Belum Diekspor ke HTML
+
+Jika `courseN.ipynb` sudah ada tetapi `courseN.html` **belum** diekspor, gunakan `<div>` bukan `<a>` (antislop R-26):
+
+```html
+<!-- Course N — courseN.html BELUM ADA, gunakan div bukan <a> -->
+<div class="card card-soon rise dN"
+     aria-label="Modul N belum tersedia: sedang disiapkan"
+     id="card-courseN">
+  <div class="card-header">
+    <div class="card-num">0N</div>
+    <span class="soon-pill">Segera</span>
+  </div>
+  <div class="card-body">
+    <p class="card-title">{{JUDUL_SINGKAT_DARI_NOTEBOOK}}</p>
+    <ul class="topic-list">
+      <li>{{TOPIK_1}}</li>
+      <li>{{TOPIK_2}}</li>
+      <li>{{TOPIK_3}}</li>
+    </ul>
+  </div>
+  <div class="card-footer">
+    <span class="ref-chip">Griffiths Ch. {{BAB}}</span>
+    <span style="font-size:0.76rem;color:var(--muted-2);">HTML dalam persiapan</span>
+  </div>
+</div>
+```
+
+Setelah `nbconvert` berhasil, ganti `<div class="card card-soon ...">` menjadi `<a class="card ...">` dengan `href="courseN.html"`.
+
+---
+
+### 5.5 Cara Mengekspor Notebook ke HTML
+
+```powershell
+# Dari direktori proyek:
+python -m nbconvert --to html --no-input courseN.ipynb
+```
+
+Setelah berhasil, perbarui kartu dari pola `card-soon` (`<div>`) menjadi pola aktif (`<a>`).
+
+---
+
+### 5.6 Checklist Update `index.html`
+
+Sebelum menyimpan hasil revisi `index.html`, pastikan semua poin ini terpenuhi:
+
+- [ ] **Judul kartu** diambil persis dari `# Heading` pertama di notebook (jalankan skrip §5.1).
+- [ ] **Topik-topik** mencerminkan subjudul (`##`) utama notebook, bukan karangan.
+- [ ] **Referensi bab Griffiths** sesuai dengan yang tertulis di metadata notebook (sel header).
+- [ ] **Link `href`** hanya ada jika file `.html` sudah ada di direktori (cek dengan `dir course*.html`).
+- [ ] **Kartu notebook-belum-html** menggunakan `<div class="card card-soon">`, bukan `<a>`.
+- [ ] **Grid reflow** tetap tiga state: 1 col / 2 col / 3 col (jangan hapus media queries).
+- [ ] **Tidak ada link mati** di navbar, footer, atau kartu (antislop R-24, R-26).
+- [ ] **Tidak ada konten fabrikasi**: tidak ada statistik palsu, testimonial, atau klaim tanpa bukti.
+- [ ] **Animasi stagger** kelas `.d1`–`.dN` diperbarui agar urutan delay sesuai jumlah kartu baru.
